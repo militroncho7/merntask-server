@@ -35,4 +35,47 @@ exports.obtenerProyectos = async (req, res) => {
         console.log(error);
         res.status(500).send('Hubo un error');
     }
-}
+};
+
+//Actualiza un proyecto
+exports.actualizarProyecto = async (req, res) => {
+
+    //Revisar si hay errores
+    const errores = validationResult(req);
+    if( !errores.isEmpty() ) {
+        return res.status(400).json({ errores: errores.array() })
+    };
+
+    //Extraer la información del proyecto
+    const { nombre } = req.body;
+    const nuevoProyecto = {};
+
+    if(nombre) {
+        nuevoProyecto.nombre = nombre;
+    }
+
+    try {
+
+        //Revisar el ID
+        let proyecto = await Proyecto.findById(req.params.id);
+
+        // //Revisar si el proyecto existe
+        if(!proyecto) {
+            return res.status(404).json({ msg: 'proyecto no encontrado' })
+        };
+
+        // //Verificar el creador del proyecto
+        if(proyecto.creador.toString() !== req.usuario.id){
+            return res.status(401).json({ msg: 'No autorizado' })
+        };
+
+        // //Actualizar
+        proyecto = await Proyecto.findByIdAndUpdate({ _id: req.params.id }, { $set: nuevoProyecto }, { new: true } );
+
+        res.json({ proyecto });
+        
+    } catch (error) {
+        console.log(error);
+        res.status(500).send('Error en el servidor');
+    };
+};
