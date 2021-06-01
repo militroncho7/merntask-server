@@ -79,3 +79,30 @@ exports.actualizarProyecto = async (req, res) => {
         res.status(500).send('Error en el servidor');
     };
 };
+
+//Eliminar un proyecto por su ID
+exports.eliminarProyecto = async (req, res) => {
+    try {
+        //Revisar el ID
+        let proyecto = await Proyecto.findById(req.params.id);
+
+        // //Revisar si el proyecto existe
+        if(!proyecto) {
+            return res.status(404).json({ msg: 'proyecto no encontrado' })
+        };
+
+        // //Verificar el creador del proyecto
+        if(proyecto.creador.toString() !== req.usuario.id){
+            return res.status(401).json({ msg: 'No autorizado' })
+        };
+
+        //Eliminar el proyecto
+        await Proyecto.findOneAndRemove({ _id: req.params.id });
+        res.json({ msg: 'Proyecto eliminado '})
+        
+    } catch (error) {
+        console.log(error);
+        res.status(500).send('Error en el servidor');
+    }
+;
+}
